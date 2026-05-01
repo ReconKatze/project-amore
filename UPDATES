@@ -1,5 +1,5 @@
 05/01/2026-
-Full rewrite of Project Amore.
+Full rewrite of Project Amore. V4.0
 
 The new version of Project Amore is a dual-mind, persistent-state coding-agent architecture built around a hybrid Mamba-3/Transformer backbone. Its core split is between the Lower Mind, which handles fast execution, code reasoning, tool proposals, local edits, and ordinary response generation, and the Higher Mind, which wakes only when needed for reflection, planning, critique, uncertainty resolution, or long-horizon strategy. The two minds communicate through the Callosum, a structured interconnect that passes proposals, directives, state summaries, uncertainty signals, and memory packets without letting either mind freely overwrite the other. For the current build, Amore does not implement the full Equation of Life state system; it only preserves the two pieces we actually need now: Z_cog, the persistent Mamba cognitive state, and Z_id, the identity/continuity partition inside that recurrent state. Everything else from the Equation of Life remains a later theoretical scaffold, not an active implementation dependency. The practical goal is to give Amore real continuity across sessions through Mamba state save/load while keeping the rest of the system modular, testable, and buildable.
  
