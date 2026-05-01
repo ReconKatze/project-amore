@@ -1,3 +1,5 @@
+** THIS NEEDS TO BE UPDATED. Information below may not accurately represent current project status. Refer to UPDATES file for current progress. **
+
 # Project Amore and The Ultra-Equation of Life
 (Formally Project Chimera)
 
