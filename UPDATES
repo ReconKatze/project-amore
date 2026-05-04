@@ -361,7 +361,7 @@ Four tiers, four roles, four boundary conditions.
 
 ### 5.3 Pegasus
 
-**Role:** retrieval and context-supply layer. The renamed Hermes.
+**Role:** retrieval and context-supply layer, plus the I/O and capability surface for memory-related operations. The renamed Hermes.
 
 **Responsibilities:**
 
@@ -369,10 +369,83 @@ Four tiers, four roles, four boundary conditions.
 - Hosts MEMORY.md, USER.md, document memory, session search, query builder, reranker, contradiction detector
 - xMemory-style hierarchical retrieval (themes → episodes → raw traces, top-down expansion only when uncertainty justifies)
 - SRMU-style relevance-gated writes
+- Hosts the messaging gateway (transport layer for I/O between Pegasus and external channels)
+- Hosts the skills registry (declarative, sandboxed retrieval/storage/transformation capabilities)
+- Hosts MCP integration (protocol adapter for external tool and data sources)
 
-**Implementation note:** Pegasus reuses subset of `nousresearch/hermes-agent` machinery — specifically the bounded MEMORY.md / USER.md stores, substring-matching add/replace/remove tool actions, SQLite + FTS5 session_search, duplicate-rejection logic, and security scanning. **Stripped out:** the Curator (it is an LLM and would “think”), the agent loop, messaging gateway, skills system, MCP integration, cron scheduler, external memory provider plugins.
+**Implementation note:** Pegasus reuses substantial portions of `nousresearch/hermes-agent` machinery — bounded MEMORY.md / USER.md stores, substring-matching add/replace/remove tool actions, SQLite + FTS5 session_search, duplicate-rejection logic, security scanning, **messaging gateway**, **skills system**, **MCP integration**. **Stripped out:** the Curator (it is an LLM and would “think”), the agent loop (cognition belongs to LM/HM), the cron scheduler, external memory provider plugins (Honcho/Mem0/etc are alternative cognition layers, not Pegasus capabilities).
 
-**Critical compatibility note:** Hermes’ “frozen snapshot at session start” injection pattern is *incompatible* with Amore’s continuous Mamba state. Pegasus retrieval must be query-driven and interleaved with the recurrent state, not injected once at session start. The storage and retrieval mechanics port cleanly; the system-prompt-prefix injection model does not. The decision of *when* retrieved Pegasus content enters LM’s context is a separate routing concern (the architectural work that was misnamed “Athena” in the drifted markdowns).
+**Critical compatibility note:** Hermes’ “frozen snapshot at session start” injection pattern is *incompatible* with Amore’s continuous Mamba state. Pegasus retrieval must be query-driven and interleaved with the recurrent state, not injected once at session start. The storage and retrieval mechanics port cleanly; the system-prompt-prefix injection model does not. The decision of *when* retrieved Pegasus content enters LM’s context is a separate routing concern (`retrieval_gate`, see §6.2).
+
+#### 5.3.1 Messaging Gateway
+
+**Role:** transport layer. Moves content into and out of Pegasus across channels (REST, Discord, Telegram, file watchers, etc.).
+
+**Discipline:** transport only. Never transforms semantics, never reasons about whether content “should” be stored. SRMU gating decides whether content survives the write; the gateway only moves bytes.
+
+**Must not:**
+
+- Think
+- Modify content semantics in transit
+- Bypass SRMU gating on writes
+- Bypass ClawGuard’s `RETRIEVAL_INGEST` boundary on inbound content
+
+#### 5.3.2 Skills Registry
+
+**Role:** declarative registry of sandboxed retrieval/storage/transformation skills that extend Pegasus’ capabilities.
+
+**What skills are:** Python modules with manifests declaring capabilities, required tools, sandbox requirements, and resource limits. A skill is a *capability* — e.g., “search arXiv for papers matching query X and store results,” “extract structured data from a PDF,” “build an index over a code repository,” “convert a CSV into theme/episode tier records.” Skills are loaded, registered, sandboxed, and invoked by the registry; the registry itself does not reason about *what* the skill does, only *how* it runs.
+
+**Critical scope discipline.** Skills registered in Pegasus are **retrieval, storage, and transformation skills only** — they extend Pegasus’ capabilities as a memory system, not LM/HM’s reasoning capabilities.
+
+Skills that belong in Pegasus:
+
+|Example                                                            |Type                   |
+|-------------------------------------------------------------------|-----------------------|
+|Search arXiv and ingest abstracts                                  |Retrieval              |
+|Index this Git repo for FTS retrieval                              |Storage                |
+|Convert this PDF into theme/episode/raw-trace tiers                |Transformation         |
+|Detect contradictions among stored claims using deterministic rules|Analytic transformation|
+
+Skills that do **not** belong in Pegasus (these belong in LM/HM):
+
+|Example                         |Why excluded      |
+|--------------------------------|------------------|
+|Decide whether this code is good|Reasoning         |
+|Recommend an architecture for X |Reasoning         |
+|Summarize using an LLM call     |Embedded cognition|
+
+**Skill proposal pipeline (LM/HM → Athena → HM → ClawGuard → Pegasus):**
+
+1. **Proposal.** LM or HM proposes a new skill that fits its role. LM-proposed skills typically address routine retrieval/transformation needs that emerged during execution. HM-proposed skills typically address strategic gaps noticed during reflection (e.g., “we keep needing to convert TypeScript ASTs to a searchable form; let’s register that skill”).
+1. **Sandbox by Athena.** Athena receives the proposal as a sandbox experiment. She runs the skill against test inputs in an isolated environment, observes behavior, checks for resource usage outside declared limits, side effects beyond declared scope, hidden cognition (e.g., embedded LLM calls that the manifest didn’t disclose), and failure modes. Sandbox results are returned as a structured report.
+1. **HM review.** HM reads Athena’s sandbox report and either approves or rejects. Approval includes any required manifest amendments (tighter resource limits, additional declared capabilities, etc.).
+1. **ClawGuard validation.** Approved skills cross a new boundary type, `SKILL_REGISTRATION`, distinct from `TOOL_CALL`. ClawGuard validates the skill manifest, sandbox isolation contract, declared capabilities, and resource limits against the safety policy. Registration may be denied even if HM approved.
+1. **Commit to registry.** Skill becomes available for invocation. After registration, skill invocations go through the normal `TOOL_CALL` boundary on each call.
+
+**Two-stage gating rationale.** Registration is rare and heavily checked (a skill, once registered, can be invoked many times — the threat model is different from one-off tool calls). Invocation is frequent and standardly checked. This mirrors how an OS distinguishes installing a binary from running it.
+
+**Must not:**
+
+- Think
+- Allow cognition to be embedded in skills (skills are capability extensions, not reasoning extensions)
+- Bypass the proposal pipeline — no skill enters the registry without Athena sandbox + HM review + ClawGuard validation
+- Allow skill registration without a complete manifest declaring capabilities, tools, sandbox, resource limits
+- Become a back door for putting LM/HM cognition into Pegasus
+
+#### 5.3.3 MCP Integration
+
+**Role:** protocol adapter for external tool and data sources following the Model Context Protocol standard.
+
+**Discipline:** adapter only. MCP-exposed sources can serve content to Pegasus; Pegasus can invoke MCP-registered tools through the skills registry; ClawGuard mediates all such invocations.
+
+**Must not:**
+
+- Reason about which MCP source to use (that is LM/HM’s job, surfaced through normal tool selection)
+- Bypass ClawGuard for MCP-mediated tool calls
+- Permit MCP-exposed sources to push content directly into Pegasus without `RETRIEVAL_INGEST` gating
+
+#### 5.3.4 Pegasus Boundaries (Summary)
 
 **Must not:**
 
@@ -380,11 +453,14 @@ Four tiers, four roles, four boundary conditions.
 - Decide
 - Reason
 - Drift into being an agent
+- Allow skills, MCP integrations, or messaging gateways to embed cognition
 
 **Usage discipline (mirroring Mnemosyne’s):**
 
-- `pegasus_retrieve()`, `pegasus_write()`, `pegasus_search()` are valid
-- `pegasus_thinks()`, `pegasus_decides()`, `pegasus_advises()` are forbidden
+- `pegasus_retrieve()`, `pegasus_write()`, `pegasus_search()`, `pegasus_invoke_skill(name, args)`, `pegasus_register_skill(manifest)` are valid
+- `pegasus_thinks()`, `pegasus_decides()`, `pegasus_advises()`, `pegasus_recommends()` are forbidden
+
+The discipline that holds across all three sub-components: **Pegasus moves and stores; it does not reason.** Messaging gateway moves bytes. Skills registry dispatches sandboxed capabilities. MCP integration adapts protocols. None of them think.
 
 ### 5.4 Mnemosyne
 
@@ -486,6 +562,7 @@ The Callosum (§4.1), Controller (§4.2), and Themis (§4.3) belong here functio
 - `CODE_EXECUTION` — sandboxed execution
 - `RETRIEVAL_INGEST` — Pegasus content entering context
 - `MNEMOSYNE_PROPOSAL` — proposed identity record
+- `SKILL_REGISTRATION` — proposed Pegasus skill, validated once at registration time (skill manifest, sandbox isolation, declared capabilities, resource limits); skill *invocations* after registration go through `TOOL_CALL`
 - (others as needed)
 
 **Must not:**
@@ -558,7 +635,7 @@ This section captures published-research mechanisms that have been adopted, defe
 **Full pipeline includes:**
 
 - Task-specific rule induction *before* any tool calls — the agent’s stated objective is used to derive an access-rule set that constrains the session’s tool boundary
-- Baseline invariants (boundary types from §7.1’s taxonomy: `TOOL_CALL`, `FILE_READ`, `CODE_EXECUTION`, `RETRIEVAL_INGEST`, `MNEMOSYNE_PROPOSAL`)
+- Baseline invariants (boundary types from §7.1’s taxonomy: `TOOL_CALL`, `FILE_READ`, `CODE_EXECUTION`, `RETRIEVAL_INGEST`, `MNEMOSYNE_PROPOSAL`, `SKILL_REGISTRATION`)
 - Per-tool-call interception with deterministic rule evaluation
 - Skill inspection (declared capabilities checked against requested operations)
 - Allow / deny / ambiguous classification with explicit user approval flow for ambiguous cases
@@ -654,16 +731,6 @@ The following research patterns are filed as Colab-stage items, not v0.5 build i
 - **Adaptive-RAG (offline feature discovery only).** The paper’s learned online router would violate retrieval_gate’s deterministic-plumbing discipline. The *offline* contribution — discovering useful complexity-classification features (recency, relevance, uncertainty, token budget, sanitization status) — can be distilled into locked threshold rules. Trigger: retrieval_gate rule set proves insufficient on held-out evaluation.
 - **Instruction Hierarchy (defense-in-depth).** Teaching LM, HM, Athena to be intrinsically suspicious of lower-privileged injected content. Useful as a second layer behind ClawGuard’s deterministic rules. Defer because (a) over-refusal risk is real and especially costly for benign Pegasus content; (b) needs measured baseline ClawGuard behavior to compare against. Trigger: ClawGuard production-stable with known false-positive rate.
 
-### 10.7 Rejected — Boundary Violations
-
-The following research patterns were proposed but rejected because they redefine locked roles or violate locked contracts. Preserved here so the rejection rationale doesn’t have to be re-derived later.
-
-- **DMWM-style logic-augmented HM (LINN-S2).** Bolting differentiable logic constraints (Horn clauses, temporal logic, constraint-satisfaction scoring) onto HM redefines HM from a learned-reasoning role to a symbolic-logic role. Symbolic constraints, where wanted, belong in ClawGuard (already deterministic-rule-based) or Themis’ enforcement logic, not in HM.
-- **P_soft imagination rollouts.** Driving the Mamba kernel with predicted inputs to generate imagined trajectories corrupts ε’s truthfulness as a measure of surprise on *raw reality*. P_soft’s contract requires error from raw input. A constrained version (offline, training-time-only, separate state branches that never touch live `Z_cog` / `Z_id`) might be salvageable later but is not a v0.5 item.
-- **Learned Controller policies that touch the trigger.** D-Mem, DPT-Agent, and “Learning When to Plan” patterns suggest learned gating for HM-wake decisions. The locked Controller hard rules (raw-score trigger, `vol_end_step_min = 100,000` step gate, fixed logit biases active from step 1) were arrived at empirically — V3 bug fixes that prevented overselection. Replacing trigger logic with a learned gate reintroduces the failure modes those fixes resolved. The metacognitive head and auxiliary heads provide *inputs* to the Controller; they do not replace its trigger logic.
-- **Multi-anchor identity verification machinery.** Periodic cross-tier consistency checks between `Z_id` and Mnemosyne would create a new component that thinks across memory boundaries. `Z_id` is governed by P_soft + identity loss; Mnemosyne is governed by propose/commit/reject. They are independently maintained by design. Defer indefinitely until a specific failure mode demands it.
-- **Recursive self-modeling (a model of LM’s and HM’s cognition).** Would constitute a third mind, breaking the dual-mind structure. The metacognitive heads (§3.4) deliberately do not do this — they predict outcomes, not model cognition. Subjective-experience implications are a separate concern; the architectural concern alone is sufficient to reject.
-
 -----
 
 ## 11. v0.5 Build Targets
@@ -685,6 +752,9 @@ The following research patterns were proposed but rejected because they redefine
 **Memory layer:**
 
 - Pegasus with SRMU-style write gating (§10.2) and xMemory-style hierarchical retrieval (§10.3) operational
+- Pegasus messaging gateway (§5.3.1) operational with `RETRIEVAL_INGEST` ClawGuard gating on all inbound content
+- Pegasus skills registry (§5.3.2) operational with the LM/HM-propose → Athena-sandbox → HM-review → ClawGuard-`SKILL_REGISTRATION` pipeline
+- Pegasus MCP integration (§5.3.3) operational as a protocol adapter, all tool calls gated by ClawGuard
 - Mnemosyne with propose/commit/reject discipline operational
 - FwPKM stub or first prototype depending on Colab availability
 - Reflection-trace pipeline (§3.4.2) writing to Pegasus, both lightweight (every turn) and deep structured (Controller-triggered)
@@ -692,6 +762,7 @@ The following research patterns were proposed but rejected because they redefine
 **Safety layer:**
 
 - ClawGuard full pipeline per §10.1 — task-specific rule induction, baseline invariants, per-tool-call interception, skill inspection, allow/deny/ambiguous classification, audit log
+- ClawGuard `SKILL_REGISTRATION` boundary operational — two-stage gating with Athena sandbox + HM review preceding ClawGuard validation
 
 **Steam Deck role:** integration-correctness rig. Tests every component connects, no NaNs, gradients flow correctly (and don’t flow where they shouldn’t — auxiliaries detach properly), state saves/loads bit-identically, Controller fires with expected action distribution under locked hard rules, memory writes pass SRMU gates, ClawGuard blocks what it should, Themis maintains LM/HM ratio, Callosum routes packets correctly, Pegasus stores and retrieves without crossing into “thinking,” Mnemosyne propose/commit/reject works, Athena’s proposals are evaluated by HM, metacognitive heads produce calibrated outputs and trace writes roundtrip cleanly through SRMU + Pegasus.
 
