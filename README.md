@@ -6,7 +6,7 @@
 >
 > **Where it stands now:** development is staged on purpose - the **Lower Mind** is being built and validated first; the **Higher Mind** comes next. The persistent internal state is doing real, measurable work rather than being decorative, though the specifics stay private while the foundation matures. The work currently runs solo on a single home workstation. The restraint at the heart of the project is unchanged: this describes an architecture, and makes no claim that the system experiences anything.
 >
-> Follow / support the ongoing work: https://www.gofundme.com/f/project-amore-ai-building-an-honest-stage
+> Support the ongoing work: https://www.gofundme.com/f/project-amore-ai-building-an-honest-stage
 >
 > *(status updated July 2026)*
 
