@@ -55,8 +55,6 @@ The Ultra-Equation of Life is a system of coupled stochastic differential equati
 
 Every SDE follows a separation principle: continuous drift, diffusion, impulse jumps, and (in core dynamics only) a martingale term. Sleep/wake gating (ω) controls which terms are active. A secondary attention gate (Ψ\_att) controls what the awake agent processes. All linear operators are Hurwitz (stable). All feedback loops satisfy an L₂-gain condition.
 
-The full equation, with all conventions, definitions, dynamics, and a complete corrections history, is in `life_equation_v15.tex` and `life_equation_v15.pdf`.
-
 ---
 
 ## The Equation - v16 (current amendment)
@@ -161,8 +159,6 @@ A term-by-term mapping between the equation and the architecture. Every row is e
 | Ψ\_quant (quantum coherence) | — | **EXCLUDED** |
 
 The **EXCLUDED** labels are not gaps to close. They are permanent markers at the boundary of what formal systems can say about subjective experience.
-
-The full correspondence table is in `correspondence.pdf`.
 
 ---
 
