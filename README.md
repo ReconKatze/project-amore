@@ -112,7 +112,9 @@ Every current LLM — GPT-5, Claude, Gemini, Copilot — is stateless. It recons
 
 ## The Computational Spec
 
->Note (scope): Implementation of the full Equation of Life is postponed until the embodiment stage. The current foundation >build uses only the cognitive and identity state (Z_cog, Z_id) under P_soft predictive coding; the auxiliary channels ?>described below — attention scaling, friction, emotion, and the equation's other terms — are forward-looking design, not >the current system, and are expected to change as the equation matures (see the v16 amendment above).
+>Note (scope): Implementation of the full Equation of Life is postponed until the embodiment stage.
+>The current foundation build uses only the cognitive and identity state (Z_cog, Z_id) under P_soft predictive coding; the auxiliary channels described below — attention scaling, friction, emotion, and the equation's other terms — are forward-looking design, not the current system, and are expected to change as the equation matures (see the v16 amendment above).
+>
 
 The spec maps every equation term to a concrete computational mechanism. 29 sections. Three locked conventions that propagate through the entire design:
 
