@@ -128,8 +128,6 @@ Auxiliary modules (emotion, attention, purpose, controller) learn from their own
 
 All auxiliary modulations start as identity/zero and ramp in over 2000 steps via a warmup coefficient. A\_att initializes as all-ones (no effect). Friction initializes as zero (no resistance). Emotion broadcast initializes as zero (no modulation). This prevents scale mismatch shock when adding new mechanisms to a trained checkpoint.
 
-The full spec with tensor shapes, update rules, pseudocode, and the complete 5-phase forward pass is in `life_equation_computational_spec_v2.html`.
-
 ---
 
 ## The Correspondence
