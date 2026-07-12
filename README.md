@@ -91,13 +91,21 @@ This is deliberate. It is the most honest formulation I know how to write.
 
 ## The Architecture: Project Amore
 
-Project Amore is a hybrid Mamba-3/Transformer model designed around one principle that no current production model implements: **persistent state across sessions.**
+Project Amore is a hybrid state-space / attention model designed around one principle that no current production model implements: persistent state across sessions.
 
-Every current LLM — GPT-4, Claude, Gemini, Copilot — is stateless. It reconstructs understanding from tokens on every call. Amore carries compressed structural knowledge forward in its Mamba-3 recurrent state, saved and reloaded between sessions.
+Every current LLM — GPT-5, Claude, Gemini, Copilot — is stateless. It reconstructs understanding from tokens on every call. Amore carries structural knowledge forward in a persistent recurrent state, saved and reloaded between sessions.
 
-**P\_soft (Predictive Coding):** The foundational, non-retrofittable design commitment. Standard Mamba drives state with raw input. P\_soft drives state with *prediction error* — only the surprising part of the input modifies state. This means the recurrent state becomes a predictive world model, not a passive cache. This is what makes persistent state meaningful rather than just accumulated noise.
+**The substrate.** The recurrent core is a Mamba-3 selective state-space model — complex-valued state updates with a multi-input / multi-output (MIMO) per-head formulation. Interleaved through the stack are attention anchors that combine three attention variants across depth — standard self-attention, gated linear attention (GLA), and exclusive self-attention (XSA) — with rotary position embeddings and RMS normalization. Rather than accumulating layer outputs with fixed weights, the blocks are merged by Attention Residuals (Block-AttnRes), which learns how much each block should contribute.
 
-**Validation approach:** Every architectural concept is proven at small scale before committing to larger runs. Same architecture, smaller model.
+**Persistent internal state.** The carried state has two partitions: Z_cog, the cognitive working state, and Z_id, a slower-decaying identity partition anchored to a frozen seed. Both are threaded turn to turn — and across sessions.
+
+**P_soft (Predictive Coding):** The foundational, non-retrofittable design commitment. Standard Mamba drives state with raw input. P_soft drives state with prediction error — only the surprising part of the input modifies state. This means the recurrent state becomes a predictive world model, not a passive cache. This is what makes persistent state meaningful rather than just accumulated noise.
+
+**Layered memory.** Beyond the recurrent state, Amore has tiered memory: a fast-weight product-key memory (FwPKM) for rapid associative recall, Pegasus for episodic recall, and Mnemosyne for durable, protected identity records — every write disciplined and gated.
+
+**Two minds, with guardrails.** The cognitive layer runs as a dual mind — a Lower Mind that executes and a Higher Mind that reflects on and checks it — overseen by a closed triad of deterministic regulators (ClawGuard, Themis, Asclepius). Auxiliary heads read the state only through gradient-isolated, detached copies, so nothing outside the recurrent core can destabilize it.
+
+**Training & validation.** The model is trained with the Muon optimizer and μP width transfer, and every architectural concept is proven at small scale before committing to larger runs — same architecture, smaller model. The papers behind each method are credited in the project's References & Attributions.
 
 
 ---
