@@ -55,19 +55,6 @@ Not bundled in this repository; installed at runtime via:
 
 ---
 
-## Qwen2.5 Models (Alibaba Cloud)
-
-**Source:** https://huggingface.co/Qwen  
-**License:** Qwen License (permissive for research; commercial use above 100M MAU
-requires separate agreement — see https://huggingface.co/Qwen/Qwen2.5-Coder-7B)  
-**Copyright:** Copyright (c) 2024 Alibaba Cloud
-
-`Qwen2.5-Coder-7B` — teacher model for knowledge distillation (Step 4).  
-`Qwen2.5-Coder-1.5B` — student model backbone (Step 4).  
-Neither model is bundled; downloaded at runtime from HuggingFace Hub.
-
----
-
 ## PyTorch (Meta)
 
 **Source:** https://github.com/pytorch/pytorch  
