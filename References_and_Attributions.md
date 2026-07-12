@@ -75,7 +75,7 @@ Used in building and training the system; not bundled in this repository.
 - **PyTorch** (Meta) — BSD 3-Clause. Core tensor framework.
 - **HuggingFace Transformers** — Apache 2.0. Model loading and tokenizer utilities.
 - **mamba-ssm** (Tri Dao, Albert Gu) — Apache 2.0. Mamba-3 SSM kernels.
-- **hermes-agent** (Nous Research) — MIT. The agent framework a stripped version of which underpins Pegasus.
+- **hermes-agent** (Nous Research) — MIT. The stripped down agent framework version of which underpins Pegasus.
 
 ---
 
