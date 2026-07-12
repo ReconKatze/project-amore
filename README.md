@@ -1,3 +1,4 @@
+<img width="941" height="941" alt="2A510260-7726-4B79-8F84-E673054F49F0" src="https://github.com/user-attachments/assets/6fa40d71-1baf-4b71-a05f-ee075da981f6" />
 > ## Status - rebuilt from the ground up
 >
 > **Project Amore has been rebuilt from scratch since this README was written.** The earlier approach proved the core idea was viable - a model with a genuine persistent internal state - but it was not going to scale into a real system, so I started over and built the full architecture myself.
