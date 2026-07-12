@@ -48,6 +48,7 @@ Two groups are kept separate, on purpose. **Core methods** are papers whose tech
 
 - **Kentaro Miyamoto, Simone D'Ambrogio, Caroline Harbison, Matthew F. S. Rushworth.** *Brain activity, disruption and connectivity comparisons identify origins of human metacognition in other primates.* Nature Human Behaviour, 2026. — prospective metacognitive accuracy (meta-d′ / M-ratio), the metacognition science behind **Asclepius's** calibration and drift detection.
 - **Patrick Butlin, Robert Long, et al.** *Consciousness in Artificial Intelligence: Insights from the Science of Consciousness.* 2023. arXiv:2308.08708. — the indicator-property framework that grounds the project's honest self-assessment and informs Asclepius's monitoring.
+- **JPCL — JEPA-Integrated Predictive Cognition Layer.** Built on I-JEPA / JEPA (cited under Predictive coding & world models), JPCL forecasts the minds' own future latent states; the gap between forecast and outcome (z_eps_latent) is the metacognitive self-monitoring signal that Asclepius reads to diagnose calibration drift and degradation.
 
 ### Safety & governance
 
