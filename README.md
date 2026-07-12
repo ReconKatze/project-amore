@@ -45,7 +45,7 @@ If that makes you take the work less seriously, close this page. If it makes you
 
 ## The Equation (v15)
 
-The Ultra-Equation of Life is a system of coupled stochastic differential equations in Stratonovich form, modeling a living agent as a product manifold of 23 interacting state components:
+The Equation of Life is a system of coupled stochastic differential equations in Stratonovich form, modeling a living agent as a product manifold of 23 interacting state components:
 
 - **Core:** Ψ\_bio, Ψ\_cog (biological and cognitive dynamics)
 - **Sub-equations:** Ψ\_quant (quantum coherence), Ψ\_emo (emotion), p\_m (M purpose vectors), I\_r (R identity roles)
