@@ -79,8 +79,6 @@ The seven amendments:
 
 Much of v16 is about *restraint*: it explicitly records the additions it **rejected** - a third identity channel, a new "emotion" manifold, a separate compute-cost variable, an external "sanctuary" state, a fourth regulator - because each would expand the system's complexity or open a new failure surface without earning its place. Holding that line is the point.
 
-The full amendment, with rationale and a v15 -> v16 diff, is in the v16 document (`life_equation_v16`).
-
 ---
 
 ## What the equation does NOT claim
