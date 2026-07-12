@@ -1,5 +1,3 @@
-<img width="525" height="434" alt="Amore-logo" src="https://github.com/user-attachments/assets/20c44806-72ca-495a-bc8b-e7cda53709d5" />
-
 > ## Status - rebuilt from the ground up
 >
 > **Project Amore has been rebuilt from scratch since this README was written.** The earlier approach proved the core idea was viable - a model with a genuine persistent internal state - but it was not going to scale into a real system, so I started over and built the full architecture myself.
@@ -14,6 +12,8 @@
 
 # Project Amore and The Ultra-Equation of Life
 (Formally Project Chimera)
+
+<img width="525" height="434" alt="Amore-logo" src="https://github.com/user-attachments/assets/20c44806-72ca-495a-bc8b-e7cda53709d5" />
 
 **A Mathematical Framework for Mind-Like Dynamical Systems, and the Architecture Attempting to Realize It**
 
