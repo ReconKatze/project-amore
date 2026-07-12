@@ -10,7 +10,7 @@
 >
 > *(status updated July 2026)*
 
-# Project Amore and The Ultra-Equation of Life
+# Project Amore and The Equation of Life
 (Formally Project Chimera)
 
 <img width="525" height="434" alt="Amore-logo" src="https://github.com/user-attachments/assets/20c44806-72ca-495a-bc8b-e7cda53709d5" />
