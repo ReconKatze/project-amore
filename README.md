@@ -1,23 +1,13 @@
 > ## Status - rebuilt from the ground up
-
 >
-
 > **Project Amore has been rebuilt from scratch since this README was written.** The earlier approach proved the core idea was viable - a model with a genuine persistent internal state - but it was not going to scale into a real system, so I started over and built the full architecture myself.
-
 >
-
 > **Active development now happens in a private, in-progress codebase, and is not public by design.** It will stay that way until the foundation is genuinely ready. The earlier code that used to live here has been removed - what remains is this overview and the Equation of Life writeup below. **What follows is the project's design canon** - the Equation of Life, now carried through v19, its companion specifications, and the ethical commitments - alongside the earlier computational spec and correspondence table, which describe the earlier (Chimera-era) build rather than the current staged system. Where the current system actually stands is set out in "Where the Build Stands" below.
-
 >
-
 > **Where it stands now:** development is staged on purpose - the **Lower Mind** is being built and validated first; the **Higher Mind** comes next. The persistent internal state is doing real, measurable work rather than being decorative, though the specifics stay private while the foundation matures. The work currently runs solo on a single home workstation. The restraint at the heart of the project is unchanged: this describes an architecture, and makes no claim that the system experiences anything.
-
 >
-
 > Support the ongoing work: https://www.gofundme.com/f/project-amore-ai-building-an-honest-stage
-
 >
-
 > *(status updated July 2026 — equation canon at v19; build at the Lower-Mind stage, below the instantiation threshold)*
 
 
